@@ -27,11 +27,20 @@ known_arm_compatible_distros=(
                         "Kali arm"
                     )
 
+function read_os() {
+    if test -r /etc/os-release
+    then
+        clearenv setenv "$1" "$2" read-conf /etc/os-release printenv "$1"
+    else
+        clearenv setenv "$1" "$2" read-conf /usr/lib/os-release printenv "$1"
+    fi
+}
+
 #First phase of Linux distro detection based on uname output
 function detect_distro_phase1() {
 
     for i in "${known_compatible_distros[@]}"; do
-        uname -a | grep "${i}" -i > /dev/null
+        awk -F= '$1=="ID" { print $2 ;}' /etc/os-release | grep "${i}" -i > /dev/null
         if [ "$?" = "0" ]; then
             distro="${i^}"
             break
