@@ -18,6 +18,10 @@ known_compatible_distros=(
                         "RHELStable"
                         "CentOS"
                     )
+#Packages
+package_depdencies={
+                      ""
+}
 
 #First phase of Linux distro detection based on awk /etc/os-release output
 function detect_distro_phase1() {
@@ -78,30 +82,7 @@ function detect_architecture() {
       echo "ARM Architecture"
     fi
 }
-#add associated repository based on distro
-function add_repo(){
-  cat <<EOF | sudo tee /etc/yum.repos.d/influxdb.repo
-[influxdb]
-name = InfluxDB Repository - RHEL \$releasever
-baseurl = https://repos.influxdata.com/rhel/\$releasever/\$basearch/stable
-enabled = 1
-gpgcheck = 1
-gpgkey = https://repos.influxdata.com/influxdb.key
-EOF
-}
-#Add Service
-function add_and_start_service(){
-  echo "Installing Influx db"
-  sudo yum install -y influxdb
-  echo "Starting Service"
-  sudo service influxdb start
-}
+
 
 detect_distro_phase1
 detect_distro_phase2
-add_repo
-add_and_start_service
-
-
-echo "${distro}"
-echo "${is_arm}"
