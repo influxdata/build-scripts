@@ -1,42 +1,25 @@
 #!/bin/bash
 
-is_arm=0
-
+#Architecture vars
+known_compatible_architectures=(
+                        "X32"
+                        "X64"
+                        "ARM"
+)
 #Distros vars
 known_compatible_distros=(
-                        "Kali"
-                        "Parrot"
-                        "Backbox"
-                        "Blackarch"
-                        "Cyborg"
-                        "Ubuntu"
-                        "Debian"
-                        "SuSE"
+                        "DebianStable"
+                        "DebianUnstable"
+                        "UbuntuLTS"
+                        "UbuntuStable"
+                        "UbuntuDev"
+                        "FedoraStable"
+                        "FedoraDev"
+                        "RHELStable"
                         "CentOS"
-                        "Gentoo"
-                        "Fedora"
-                        "Red Hat"
-                        "Arch"
-                        "OpenMandriva"
-                        "centos"
                     )
 
-known_arm_compatible_distros=(
-                        "Raspbian"
-                        "Parrot arm"
-                        "Kali arm"
-                    )
-
-function read_os() {
-    if test -r /etc/os-release
-    then
-        clearenv setenv "$1" "$2" read-conf /etc/os-release printenv "$1"
-    else
-        clearenv setenv "$1" "$2" read-conf /usr/lib/os-release printenv "$1"
-    fi
-}
-
-#First phase of Linux distro detection based on uname output
+#First phase of Linux distro detection based on awk /etc/os-release output
 function detect_distro_phase1() {
 
     for i in "${known_compatible_distros[@]}"; do
@@ -80,28 +63,20 @@ function detect_distro_phase2() {
             fi
         fi
     fi
-
-    detect_arm_architecture
+    detect_architecture
 }
 
 #Detect if arm architecture is present on system
-function detect_arm_architecture() {
-
-    distro_already_known=0
-    uname -m | grep -i "arm" > /dev/null
-
-    if [[ "$?" = "0" ]] && [[ "${distro}" != "Unknown Linux" ]]; then
-
-        for item in "${known_arm_compatible_distros[@]}"; do
-            if [ "${distro}" = "${item}" ]; then
-                distro_already_known=1
-            fi
-        done
-
-        if [ ${distro_already_known} -eq 0 ]; then
-            distro="${distro} arm"
-            is_arm=1
-        fi
+function detect_architecture() {
+    arch=$(uname -i)
+    if [ "$arch" == 'x86_64' ]; then
+      echo "X64 Architecture"
+    fi
+    if [ "$arch" == 'x86_32' ]; then
+      echo "X32 Architecture"
+    fi
+    if [ "$arch" == 'armv*' ]; then
+      echo "ARM Architecture"
     fi
 }
 
