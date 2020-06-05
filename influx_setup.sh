@@ -21,7 +21,7 @@ known_compatible_distros=(
 
 #First phase of Linux distro detection based on awk /etc/os-release output
 function detect_distro_phase1() {
-
+    echo "Performing Distro Detection"
     for i in "${known_compatible_distros[@]}"; do
         awk -F= '$1=="ID" { print $2 ;}' /etc/os-release | grep "${i}" -i > /dev/null
         if [ "$?" = "0" ]; then
@@ -33,7 +33,6 @@ function detect_distro_phase1() {
 
 #Second phase of Linux distro detection based on architecture and version file
 function detect_distro_phase2() {
-
     if [ "${distro}" = "Unknown Linux" ]; then
         if [ -f ${osversionfile_dir}"centos-release" ]; then
             distro="CentOS"
@@ -79,9 +78,30 @@ function detect_architecture() {
       echo "ARM Architecture"
     fi
 }
+#add associated repository based on distro
+function add_repo(){
+  cat <<EOF | sudo tee /etc/yum.repos.d/influxdb.repo
+[influxdb]
+name = InfluxDB Repository - RHEL \$releasever
+baseurl = https://repos.influxdata.com/rhel/\$releasever/\$basearch/stable
+enabled = 1
+gpgcheck = 1
+gpgkey = https://repos.influxdata.com/influxdb.key
+EOF
+}
+#Add Service
+function add_and_start_service(){
+  echo "Installing Influx db"
+  sudo yum install -y influxdb
+  echo "Starting Service"
+  sudo service influxdb start
+}
 
 detect_distro_phase1
 detect_distro_phase2
+add_repo
+add_and_start_service
+
 
 echo "${distro}"
 echo "${is_arm}"
