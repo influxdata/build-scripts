@@ -18,81 +18,80 @@ known_compatible_distros=(
                         "RHELStable"
                         "CentOS"
                     )
-#Packages
-package_depdencies=(
-                      "Test"
+#Known Dependencies
+known_deps=(
+          "yarn"
+          "protobuf"
+          "bzr"
+          "clang"
+          "rust"
+          "go"
 )
-go_fn="go1.13.12.linux-amd64.tar.gz"
-go_path="https://dl.google.com/go/${go_fn}"
 
+go_fn_x86_64="go1.13.12.linux-amd64.tar.gz"
+go_fn_x86="go1.13.12.linux-386.tar.gz"
+go_fn_armv8="go1.13.12.linux-arm64.tar.gz"
+go_fn_armv6="go1.13.12.linux-armv6l.tar.gz"
+go_path="https://dl.google.com/go/"
+
+selected_fn=""
 
 #First phase of Linux distro detection based on awk /etc/os-release output
-function detect_distro_phase1() {
-    echo "Performing Distro Detection"
-    for i in "${known_compatible_distros[@]}"; do
-        awk -F= '$1=="ID" { print $2 ;}' /etc/os-release | grep "${i}" -i > /dev/null
-        if [ "$?" = "0" ]; then
-            distro="${i^}"
-            break
-        fi
-    done
+function detect_distro_phase() {
+  # Determine OS platform
+  UNAME=$(uname | tr "[:upper:]" "[:lower:]")
+  # If Linux, try to determine specific distribution
+  if [ "$UNAME" == "linux" ]; then
+      # If available, use LSB to identify distribution
+      if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
+          export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+      # Otherwise, use release info file
+      else
+          export DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)
+      fi
+  fi
+  # For everything else (or if above failed), just use generic identifier
+  [ "$DISTRO" == "" ] && export DISTRO=$UNAME
+  unset UNAME
+  detect_architecture
 }
-
-#Second phase of Linux distro detection based on architecture and version file
-function detect_distro_phase2() {
-    if [ "${distro}" = "Unknown Linux" ]; then
-        if [ -f ${osversionfile_dir}"centos-release" ]; then
-            distro="CentOS"
-          elif [ -f ${osversionfile_dir}"centos" ]; then
-              distro="CentOS"
-        elif [ -f ${osversionfile_dir}"fedora-release" ]; then
-            distro="Fedora"
-        elif [ -f ${osversionfile_dir}"gentoo-release" ]; then
-            distro="Gentoo"
-        elif [ -f ${osversionfile_dir}"openmandriva-release" ]; then
-            distro="OpenMandriva"
-        elif [ -f ${osversionfile_dir}"redhat-release" ]; then
-            distro="Red Hat"
-        elif [ -f ${osversionfile_dir}"SuSE-release" ]; then
-            distro="SuSE"
-        elif [ -f ${osversionfile_dir}"debian_version" ]; then
-            distro="Debian"
-            if [ -f ${osversionfile_dir}"os-release" ]; then
-                extra_os_info=$(cat < ${osversionfile_dir}"os-release" | grep "PRETTY_NAME")
-                if [[ "${extra_os_info}" =~ Raspbian ]]; then
-                    distro="Raspbian"
-                    is_arm=1
-                elif [[ "${extra_os_info}" =~ Parrot ]]; then
-                    distro="Parrot arm"
-                    is_arm=1
-                fi
-            fi
-        fi
-    fi
-    detect_architecture
-}
-
 #Detect if arm architecture is present on system
 function detect_architecture() {
     arch=$(uname -i)
     if [ "$arch" == 'x86_64' ]; then
+      arch="X64"
       echo "X64 Architecture"
+      selected_fn=${go_fn_x86_64}
     fi
     if [ "$arch" == 'x86_32' ]; then
+      arch="X86"
       echo "X32 Architecture"
+      selected_fn=${go_fn_x86}
     fi
     if [ "$arch" == 'armv*' ]; then
+      arch="ARM"
       echo "ARM Architecture"
+      selected_fn=${go_fn_armv6}
     fi
 }
 function setup_go(){
   echo "Getting GO Dependencies"
-  curl -o ${go_fn} ${go_path}
-  sudo chmod 775 ${go_fn}
-  sudo tar -C /usr/local -xzf ${go_fn}
+  curl -o ${selected_fn} ${go_path}${selected_fn}
+  sudo chmod 775 ${selected_fn}
+  sudo tar -C /usr/local -xzf ${selected_fn}
   export PATH=$PATH:/usr/local/go/bin
 }
-function install_dep(){
+function_install_dep_mapper(){
+  if [[ "$DISTRO" == *"Ubuntu"* ]]; then
+    echo $DISTRO
+    install_dep_ubuntu
+  fi
+  if [[ "$DISTRO" == *"centos"* ]]; then
+    echo $DISTRO
+    install_dep_centos
+  fi
+}
+function install_dep_ubuntu(){
   #This is to get proper yarn on Ubuntu
   sudo apt remove cmdtest -y
   sudo apt remove yarnpkg -y
@@ -109,6 +108,11 @@ function install_dep(){
   #
   sudo apt -y install bzr protobuf-compiler yarnpkg
 }
+function install_dep_centos(){
+  sudo yum install epel-release -y
+  sudo yum repolist
+  sudo yum install bzr protobuf yarn clang -y
+}
 function download_source(){
   echo "Getting Master Branch Source"
   rm -rf influxdb
@@ -123,11 +127,10 @@ function make_project(){
   make
 }
 
-
-detect_distro_phase1
-detect_distro_phase2
+# detecter
+detect_distro_phase
+function_install_dep_mapper
 setup_go
-install_dep
 download_source
 setup_rust
 make_project
