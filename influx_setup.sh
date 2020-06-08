@@ -19,9 +19,12 @@ known_compatible_distros=(
                         "CentOS"
                     )
 #Packages
-package_depdencies={
-                      ""
-}
+package_depdencies=(
+                      "Test"
+)
+go_fn="go1.13.12.linux-amd64.tar.gz"
+go_path="https://dl.google.com/go/${go_fn}"
+
 
 #First phase of Linux distro detection based on awk /etc/os-release output
 function detect_distro_phase1() {
@@ -82,7 +85,49 @@ function detect_architecture() {
       echo "ARM Architecture"
     fi
 }
+function setup_go(){
+  echo "Getting GO Dependencies"
+  curl -o ${go_fn} ${go_path}
+  sudo chmod 775 ${go_fn}
+  sudo tar -C /usr/local -xzf ${go_fn}
+  export PATH=$PATH:/usr/local/go/bin
+}
+function install_dep(){
+  #This is to get proper yarn on Ubuntu
+  sudo apt remove cmdtest -y
+  sudo apt remove yarnpkg -y
+  curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+  sudo apt update && sudo apt install yarn
+  ##
+  #This gets libclang dev for ubuntu/debian_version
+  sudo apt-get install libclang-dev -y
+  ##
+
+  #Here is where we would get CentOS/RHL/FedoraDev
+  #sudo yum install clang  # Or replace `yum` with `dnf`
+  #
+  sudo apt -y install bzr protobuf-compiler yarnpkg
+}
+function download_source(){
+  echo "Getting Master Branch Source"
+  rm -rf influxdb
+  git clone https://github.com/influxdata/influxdb.git influxdb
+}
+function setup_rust(){
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust.sh && chmod +x rust.sh && ./rust.sh -y && export PATH=$PATH:$HOME/.cargo/bin && rm rust.sh
+}
+function make_project(){
+  export GO111MODULE=on
+  cd influxdb
+  make
+}
 
 
 detect_distro_phase1
 detect_distro_phase2
+setup_go
+install_dep
+download_source
+setup_rust
+make_project
