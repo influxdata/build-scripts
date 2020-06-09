@@ -93,6 +93,7 @@ function_install_dep_mapper(){
 }
 function install_dep_ubuntu(){
   #This is to get proper yarn on Ubuntu
+  apt-get install sudo -y
   sudo apt remove cmdtest -y
   sudo apt remove yarnpkg -y
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
@@ -107,11 +108,20 @@ function install_dep_ubuntu(){
   #sudo yum install clang  # Or replace `yum` with `dnf`
   #
   sudo apt -y install bzr protobuf-compiler yarnpkg
+  sudo apt install git-all -y
+  sudo apt-get install build-essential
 }
 function install_dep_centos(){
+  yum install sudo -y
   sudo yum install epel-release -y
   sudo yum repolist
-  sudo yum install bzr protobuf yarn clang -y
+  sudo yum install protobuf clang -y
+  sudo yum groupinstall 'Development Tools' -y
+  sudo dnf install @nodejs -y
+  curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
+  sudo rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
+  sudo dnf install yarn -y
+  sudo dnf install git-all -y
 }
 function download_source(){
   echo "Getting Master Branch Source"
