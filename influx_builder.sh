@@ -38,6 +38,8 @@ selected_fn=""
 
 #First phase of Linux distro detection based on awk /etc/os-release output
 function detect_distro_phase() {
+  #Handle docker missing lsb-release
+  apt-get update && apt-get install -y lsb-release && apt-get clean all
   # Determine OS platform
   UNAME=$(uname | tr "[:upper:]" "[:lower:]")
   # If Linux, try to determine specific distribution
@@ -93,23 +95,19 @@ function_install_dep_mapper(){
 }
 function install_dep_ubuntu(){
   #This is to get proper yarn on Ubuntu
-  apt-get install sudo -y
+  apt-get install sudo apt-utils curl gnupg -y
+  echo "Set disable_coredump false" >> /etc/sudo.conf
   sudo apt remove cmdtest -y
   sudo apt remove yarnpkg -y
   curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
   echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-  sudo apt update && sudo apt install yarn
-  ##
-  #This gets libclang dev for ubuntu/debian_version
+  sudo apt update && sudo apt install yarn -y
+  yarn --version
   sudo apt-get install libclang-dev -y
-  ##
-
-  #Here is where we would get CentOS/RHL/FedoraDev
-  #sudo yum install clang  # Or replace `yum` with `dnf`
-  #
   sudo apt -y install bzr protobuf-compiler yarnpkg
   sudo apt install git-all -y
-  sudo apt-get install build-essential
+  sudo apt-get install build-essential -y
+  sudo apt-get install pkg-config -y
 }
 function install_dep_centos(){
   yum install sudo -y
@@ -122,6 +120,7 @@ function install_dep_centos(){
   sudo rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
   sudo dnf install yarn -y
   sudo dnf install git-all -y
+  sudo yum install pkgconfig -y
 }
 function download_source(){
   echo "Getting Master Branch Source"
