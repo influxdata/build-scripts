@@ -1,6 +1,7 @@
 #!/bin/bash
 # Declare an array of string with type
-declare -a TargetsArray=("ubuntu" "centos")
+#("ubuntu" "centos")
+declare -a TargetsArray=("ubuntu")
 echo "Checking Docker installation"
 if ! [ -x "$(command -v docker)" ]; then
   echo 'Error: docker is not installed. Install docker first. try "sudo apt install docker.io" or equivalent' >&2
@@ -17,14 +18,14 @@ for val in ${TargetsArray[@]}; do
            # cleanup
            docker rm $val
        fi
-       docker run -v $PWD:/scripts $val /bin/bash -c "/scripts/influx_builder.sh"
+       cp influx_builder.sh ${PWD}/builds
+docker run -i --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash << COMMANDS
+rm -rf /mnt/builds/influxdb
+cd /mnt/builds/
+./influx_builder.sh
+echo Changing owner from \$(id -u):\$(id -g) to $(id -u):$(id -u)
+chown -R $(id -u):$(id -u) /mnt/builds
+rm /mnt/builds/influx_builder.sh
+COMMANDS
    fi
 done
-# echo "Starting OpenFace Docker"
-# if [ ! "$(docker ps -q -f name=bamos/openface)" ]; then
-#     if [ "$(docker ps -aq -f status=exited -f name=bamos/openface)" ]; then
-#         # cleanup
-#         docker rm bamos/openface
-#     fi
-#     docker run -v $PWD:/scripts centos /bin/bash -c "/scripts/influx_setup.sh"
-# fi

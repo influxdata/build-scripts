@@ -1,0 +1,20 @@
+Package: influxdb-client
+Source: influxdb
+Version: 1.6.4-1build1
+Architecture: amd64
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+Original-Maintainer: Debian Go Packaging Team <pkg-go-maintainers@lists.alioth.debian.org>
+Installed-Size: 5298
+Depends: libc6 (>= 2.4)
+Built-Using: golang-1.10 (= 1.10.4-2ubuntu1), golang-collectd (= 0.3.0+git20171025.606bd39-1), golang-github-beorn7-perks (= 0.0~git20160804.0.4c0e845-1), golang-github-bmizerany-pat (= 0.0~git20140625-5), golang-github-boltdb-bolt (= 1.3.1-5), golang-github-cespare-xxhash (= 1.0.0-3), golang-github-dgrijalva-jwt-go-v3 (= 3.1.0-2), golang-github-dgryski-go-bitstream (= 0.0~git20151205.0.27cd597-4), golang-github-glycerine-go-unsnap-stream (= 0.0~git20180323.9f0cb55-1), golang-github-golang-snappy (= 0.0+git20160529.d9eb7a3-2), golang-github-influxdata-influxql (= 0.0~git20180330.145e067-2), golang-github-influxdata-yamux (= 0.0~git20171107.1f58ded-5), golang-github-influxdata-yarpc (= 0.0~git20180222.f0da2db-1), golang-github-influxdb-usage-client (= 0.0~git20151204.0.475977e-5), golang-github-jsternberg-zap-logfmt (= 1.0.0-1), golang-github-jwilder-encoding (= 0.0~git20170811.b4e1701-3), golang-github-klauspost-compress (= 1.2.1-5), golang-github-klauspost-cpuid (= 1.1+dfsg1-4), golang-github-klauspost-crc32 (= 1.1-4), golang-github-klauspost-pgzip (= 1.1-1), golang-github-mattn-go-isatty (= 0.0.3-4), golang-github-opentracing-opentracing-go (= 1.0.2-1), golang-github-paulbellamy-ratecounter (= 0.2.0+git20170719.a803f0e-3), golang-github-peterh-liner (= 0.0~git20171122.3681c2a-3), golang-github-philhofer-fwd (= 0.0~git20151005.0.8fd9a4b-1), golang-github-prometheus-client-golang (= 0.9.0-1), golang-github-prometheus-client-model (= 0.0.2+git20171117.99fa1f4-1), golang-github-prometheus-common (= 0+git20180518.7600349-1), golang-github-retailnext-hllpp (= 1.0.0+git20170901.6e8b6d3-3), golang-github-roaringbitmap-roaring (= 0.4.7-1), golang-github-tinylib-msgp (= 1.0.2-2), golang-github-xlab-treeprint (= 0.0~git20180324.505f0ee-1), golang-go.crypto (= 1:0.0~git20180614.a8fb68e-1), golang-go.uber-atomic (= 1.2.0+git20170719.9.70bd126-1), golang-go.uber-multierr (= 1.1.0-1), golang-go.uber-zap (= 1.7.1+git20171031.f85c78b-5), golang-gogoprotobuf (= 1.0.0+git20180330.1ef32a8b-1), golang-golang-x-net-dev (= 1:0.0+git20180124.0ed95ab+dfsg-2), golang-golang-x-sync (= 0.0~git20171101.fd80eb9-1), golang-golang-x-sys (= 0.0~git20181026.95b1ffb-1), golang-golang-x-time (= 0.0~git20161028.0.f51c127-2), golang-goprotobuf (= 0.0~git20170808.0.1909bc2-2), golang-procfs (= 0+git20180613.7d6f385-1), golang-protobuf-extensions (= 1.0.0-2), golang-toml (= 0.3.0+git20170626.7.a368813-1), golang-x-text (= 0.0~git20170627.0.6353ef0-1ubuntu2)
+Section: database
+Priority: optional
+Homepage: https://influxdata.com/time-series-platform/influxdb/
+Description: command line interface for InfluxDB
+ InfluxDB is a time series, metrics, and analytics database. It’s written
+ in Go and has no external dependencies. That means once you install it
+ there’s nothing else to manage (such as Redis, ZooKeeper, Cassandra,
+ HBase, or anything else). InfluxDB is targeted at use cases for DevOps,
+ metrics, sensor data, and real-time analytics.
+ .
+ This package contains the command line interface.

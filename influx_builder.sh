@@ -46,10 +46,10 @@ function detect_distro_phase() {
   if [ "$UNAME" == "linux" ]; then
       # If available, use LSB to identify distribution
       if [ -f /etc/lsb-release -o -d /etc/lsb-release.d ]; then
-          export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'//)
+          export DISTRO=$(lsb_release -i | cut -d: -f2 | sed s/'^\t'// | head -n1 | cut -d " " -f1)
       # Otherwise, use release info file
       else
-          export DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1)
+          export DISTRO=$(ls -d /etc/[A-Za-z]*[_-][rv]e[lr]* | grep -v "lsb" | cut -d'/' -f3 | cut -d'-' -f1 | cut -d'_' -f1 | head -n1 | cut -d " " -f1)
       fi
   fi
   # For everything else (or if above failed), just use generic identifier
@@ -86,10 +86,12 @@ function setup_go(){
 function_install_dep_mapper(){
   if [[ "$DISTRO" == *"Ubuntu"* ]]; then
     echo $DISTRO
+    export T_TYPE="deb"
     install_dep_ubuntu
   fi
   if [[ "$DISTRO" == *"centos"* ]]; then
     echo $DISTRO
+    export T_TYPE="rpm"
     install_dep_centos
   fi
 }
@@ -126,6 +128,7 @@ function download_source(){
   echo "Getting Master Branch Source"
   rm -rf influxdb
   git clone https://github.com/influxdata/influxdb.git influxdb
+  cd influxdb && BUILD_VERSION=$(git describe --tags) && BUILD_VERSION_SHORT=$(git describe --tags --abbrev=0) && cd ..
 }
 function setup_rust(){
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust.sh && chmod +x rust.sh && ./rust.sh -y && export PATH=$PATH:$HOME/.cargo/bin && rm rust.sh
@@ -133,13 +136,43 @@ function setup_rust(){
 function make_project(){
   export GO111MODULE=on
   cd influxdb
-  make
+  make && cd ..
+}
+function copy_files(){
+  mkdir $DISTRO$arch
+  cp -avr influxdb/bin/linux/. $DISTRO$arch
+  rm ${selected_fn}
+  sudo rm -rf influxdb
+}
+function packager(){
+  echo $T_TYPE
+  if [[ "$T_TYPE" == "deb" ]]; then
+    package_deb
+  else
+    package_rpm
+  fi
+}
+function package_deb(){
+  cp -avr ${PWD}/templates/deb/ $DISTRO$arch/packages
+  cp $DISTRO$arch/influxd $DISTRO$arch/packages/influxd/usr/bin
+  INSTALL_SIZE=$(du -s $DISTRO$arch/packages/influxd/usr/bin | awk '{ print $1 }')
+  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" $DISTRO$arch/packages/influxd/DEBIAN/control
+  sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" $DISTRO$arch/packages/influxd/DEBIAN/control
+  fakeroot dpkg-deb -b $DISTRO$arch/packages/influxd
+  mv $DISTRO$arch/packages/influxd.deb $DISTRO$arch/packages/influxd-${BUILD_VERSION_SHORT}-${arch}.deb
+
+
+}
+function package_rpm(){
+  echo "package rpm here"
 }
 
-# detecter
+detecter
 detect_distro_phase
 function_install_dep_mapper
-setup_go
+#setup_go
 download_source
-setup_rust
-make_project
+#setup_rust
+#make_project
+#copy_files
+packager
