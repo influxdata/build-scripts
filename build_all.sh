@@ -19,7 +19,10 @@ for val in ${TargetsArray[@]}; do
            docker rm $val
        fi
        cp influx_builder.sh ${PWD}/builds
-docker run -i --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash << COMMANDS
+#Testing, Brings you straight to Bash
+#docker run -it --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash
+
+docker run -it --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash << COMMANDS
 rm -rf /mnt/builds/influxdb
 cd /mnt/builds/
 ./influx_builder.sh
