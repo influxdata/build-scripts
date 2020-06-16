@@ -1,3 +1,4 @@
 **/influxdb/*
+**/builds/influxdb/*
 /go1.11.13.linux-amd64.tar.gz
 /go1.13.12.linux-amd64.tar.gz
