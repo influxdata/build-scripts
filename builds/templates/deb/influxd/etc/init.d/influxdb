@@ -1,0 +1,135 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          influxdb
+# Required-Start:    $network $local_fs $remote_fs
+# Required-Stop:     $network $local_fs $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: InfluxDB is an open-source, distributed, time series database
+# Description:       InfluxDB is a time series, metrics, and analytics database.
+#                    It’s written in Go and has no external dependencies. That
+#                    means once you install it there’s nothing else to manage
+#                    (such as Redis, ZooKeeper, Cassandra, HBase, or anything
+#                    else). InfluxDB is targeted at use cases for DevOps,
+#                    metrics, sensor data, and real-time analytics.
+### END INIT INFO
+
+# If you modify this, please make sure to also edit influxdb.service
+# this init script supports three different variations:
+#  1. New lsb that define start-stop-daemon
+#  2. Old lsb that don't have start-stop-daemon but define, log, pidofproc and killproc
+#  3. Centos installations without lsb-core installed
+#
+# In the third case we have to define our own functions which are very dumb
+# and expect the args to be positioned correctly.
+
+# Command-line options that can be set in /etc/default/influxdb.  These will override
+# any config file values. Example: "-join http://1.2.3.4:8086"
+INFLUXD_OPTS=
+
+USER=influxdb
+GROUP=influxdb
+
+if [ -r /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+fi
+
+DEFAULT=/etc/default/influxdb
+
+if [ -r $DEFAULT ]; then
+    . $DEFAULT
+fi
+
+if [ -z "$STDOUT" ]; then
+    STDOUT=/dev/null
+fi
+if [ ! -f "$STDOUT" ]; then
+    mkdir -p $(dirname $STDOUT)
+fi
+
+if [ -z "$STDERR" ]; then
+    STDERR=/var/log/influxdb/influxd.log
+fi
+if [ ! -f "$STDERR" ]; then
+    mkdir -p $(dirname $STDERR)
+fi
+
+
+OPEN_FILE_LIMIT=65536
+
+# Process name ( For display )
+name=influxd
+desc=database
+
+# Daemon name, where is the actual executable
+daemon=/usr/bin/influxd
+
+# pid file for the daemon
+pidfile=/var/run/influxdb/influxd.pid
+piddir=$(dirname $pidfile)
+
+if [ ! -d "$piddir" ]; then
+    mkdir -p $piddir
+    chown $USER:$GROUP $piddir
+fi
+
+# Configuration file
+config=/etc/influxdb/influxdb.conf
+
+# If the daemon is not there, then exit.
+[ -x $daemon ] || exit 0
+
+case $1 in
+    start)
+        log_daemon_msg "Starting $desc" "$name"
+
+        # Bump the file limits, before launching the daemon. These will carry over to
+        # launched processes.
+        ulimit -n $OPEN_FILE_LIMIT
+        if [ $? -ne 0 ]; then
+            log_progress_msg "set open file limit to $OPEN_FILE_LIMIT"
+            log_end_msg 1
+            exit 1
+        fi
+
+        start-stop-daemon --start --quiet --oknodo --exec $daemon \
+          --chuid $GROUP:$USER --pidfile $pidfile --background --no-close \
+          -- -pidfile $pidfile -config $config $INFLUXD_OPTS \
+          >>$STDOUT 2>>$STDERR
+
+        log_end_msg $?
+        ;;
+
+    stop)
+        log_daemon_msg "Stopping $desc" "$name"
+
+        # Stop the daemon.
+        start-stop-daemon --stop --quiet --oknodo \
+          --exec $daemon --pidfile $pidfile
+
+        log_end_msg $?
+        ;;
+
+    restart|force-reload)
+        log_daemon_msg "Restarting $desc" "$name"
+        # Restart the daemon.
+        $0 stop && sleep 2 && $0 start
+        $0 status || errcode=$?
+        log_end_msg $errcode
+        ;;
+
+    status)
+        status_of_proc $daemon $name
+        ;;
+
+    version)
+        $daemon version
+        ;;
+
+    *)
+        # For invalid arguments, print the usage message.
+        echo "Usage: $0 {start|stop|force-reload|restart|status|version}"
+        exit 2
+        ;;
+esac

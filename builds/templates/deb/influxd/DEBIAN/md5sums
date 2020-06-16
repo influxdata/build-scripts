@@ -1,0 +1,6 @@
+faeaacecc8a5a9ff69d58230578bff7c  lib/systemd/system/influxdb.service
+ccd41db34a773f1427166a8134932f23  usr/bin/influxd
+4fdaebadec37144c2cc1e94ba8a24df8  usr/share/doc/influxdb/NEWS.Debian.gz
+12e51ccc5b99267af02c557a419dece3  usr/share/doc/influxdb/changelog.Debian.gz
+54cf1624e19eb0d61febef3f0edce68d  usr/share/doc/influxdb/copyright
+1bc50fd8c1d686168f8a66968196d759  usr/share/man/man8/influxd.8.gz

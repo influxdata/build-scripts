@@ -1,0 +1,6 @@
+3df4a0a6198b90e8d1f72a27913f2d02  usr/bin/influx
+4fdaebadec37144c2cc1e94ba8a24df8  usr/share/doc/influxdb-client/NEWS.Debian.gz
+c2d62dd43a62cbb97d47fa472adeae4c  usr/share/doc/influxdb-client/changelog.Debian.gz
+54cf1624e19eb0d61febef3f0edce68d  usr/share/doc/influxdb-client/copyright
+1b90a44736aefc87f80db10499fb8d22  usr/share/lintian/overrides/influxdb-client
+b500764f61745f91b22bb7abe5870061  usr/share/man/man8/influx.8.gz
