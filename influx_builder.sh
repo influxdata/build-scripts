@@ -119,6 +119,11 @@ function install_dep_ubuntu(){
   sudo apt install git-all -y
   sudo apt-get install build-essential -y
   sudo apt-get install pkg-config -y
+  sudo apt purge nodejs npm -y
+  curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
+  source ~/.nvm/nvm.sh
+  nvm install node
+  node -v
 }
 function install_dep_centos(){
   yum install sudo -y
