@@ -168,17 +168,22 @@ function packager(){
   fi
 }
 function package_deb(){
+
   cp -avr ${PWD}/templates/deb/ $DISTRO_$arch/packages
-  cp $DISTRO_$arch/influxd $DISTRO_$arch/packages/influxd/usr/bin
-  cp $DISTRO_$arch/influx $DISTRO_$arch/packages/influx/usr/bin
+
+  cp $DISTRO_$arch/influxd $DISTRO_$arch/packages/influxd/usr/bin/influxd
   INSTALL_SIZE=$(du -s $DISTRO_$arch/packages/influxd/usr/bin | awk '{ print $1 }')
   sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" $DISTRO_$arch/packages/influxd/DEBIAN/control
   sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" $DISTRO_$arch/packages/influxd/DEBIAN/control
   fakeroot dpkg-deb -b $DISTRO_$arch/packages/influxd
-  INSTALL_SIZE=$(du -s $DISTRO_$arch/packages/influx/usr/bin | awk '{ print $1 }')
+
+  cp $DISTRO_$arch/influx $DISTRO_$arch/packages/influx/usr/bin/influx
+  INSTALL_SIZE=$(du -s $DISTRO_$arch/packages/influx/usr/bin/influx | awk '{ print $1 }')
   sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" $DISTRO_$arch/packages/influx/DEBIAN/control
   sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" $DISTRO_$arch/packages/influx/DEBIAN/control
   fakeroot dpkg-deb -b $DISTRO_$arch/packages/influx
+
+
   mv $DISTRO_$arch/packages/influxd.deb $DISTRO_$arch/packages/influxdb_${BUILD_VERSION_SHORT}_${arch}.deb
   mv $DISTRO_$arch/packages/influx.deb $DISTRO_$arch/packages/influxdb-client_${BUILD_VERSION_SHORT}_${arch}.deb
 }
