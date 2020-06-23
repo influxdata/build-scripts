@@ -60,6 +60,7 @@ function detect_distro_phase() {
 #Detect if arm architecture is present on system
 function detect_architecture() {
     arch=$(uname -i)
+    echo $arch
     longbit=$(getconf LONG_BIT)
     if [ "$arch" == 'x86_64' ]; then
       if [ "$longbit" = '32' ]; then
@@ -81,6 +82,11 @@ function detect_architecture() {
       arch="ARM"
       echo "ARM Architecture"
       selected_fn=${go_fn_armv6}
+    fi
+    if [ "$arch" == 'aarch64' ]; then
+      arch="ARM64"
+      echo "ARM Architecture"
+      selected_fn=${go_fn_armv8}
     fi
 }
 function setup_go(){
@@ -123,7 +129,7 @@ function install_dep_ubuntu(){
   curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh | bash
   source ~/.nvm/nvm.sh
   nvm install node
-  node -v
+  npm install -g yarn
 }
 function install_dep_centos(){
   yum install sudo -y
