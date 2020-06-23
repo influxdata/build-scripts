@@ -19,14 +19,14 @@ for val in ${TargetsArray[@]}; do
            docker rm $val
        fi
        cp influx_builder.sh ${PWD}/builds
-docker run -it --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash
-# docker run -i --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash << COMMANDS
-# rm -rf /mnt/builds/influxdb
-# cd /mnt/builds/
-# ./influx_builder.sh
-# echo Changing owner from \$(id -u):\$(id -g) to $(id -u):$(id -u)
-# chown -R $(id -u):$(id -u) /mnt/builds
-# rm /mnt/builds/influx_builder.sh
-# COMMANDS
+# docker run -it --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash
+docker run -i --rm -v ${PWD}/builds:/mnt/builds $val /bin/bash << COMMANDS
+rm -rf /mnt/builds/influxdb
+cd /mnt/builds/
+./influx_builder.sh
+echo Changing owner from \$(id -u):\$(id -g) to $(id -u):$(id -u)
+chown -R $(id -u):$(id -u) /mnt/builds
+rm /mnt/builds/influx_builder.sh
+COMMANDS
    fi
 done
