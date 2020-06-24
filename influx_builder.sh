@@ -100,12 +100,12 @@ function_install_dep_mapper(){
   if [[ "$DISTRO" == *"Ubuntu"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
-    install_dep_ubuntu
+    #install_dep_ubuntu
   fi
   if [[ "$DISTRO" == *"centos"* ]]; then
     echo $DISTRO
     export T_TYPE="rpm"
-    install_dep_centos
+    #install_dep_centos
   fi
 }
 function install_dep_ubuntu(){
@@ -143,6 +143,11 @@ function install_dep_centos(){
   sudo dnf install yarn -y
   sudo dnf install git-all -y
   sudo yum install pkgconfig -y
+  yum info epel-release -y
+  sudo yum install epel-release -y
+  sudo yum config-manager --set-enabled PowerTools
+  sudo yum update -y
+  sudo yum install protobuf-devel -y
 }
 function download_source(){
   echo "Getting Master Branch Source"
@@ -160,9 +165,9 @@ function make_project(){
   make && cd ..
 }
 function copy_files(){
-  sudo rm -rf $DISTRO_$arch
-  mkdir $DISTRO_$arch
-  cp -avr influxdb/bin/linux/. $DISTRO_$arch
+  sudo rm -rf ${DISTRO}_${arch}
+  mkdir ${DISTRO}_${arch}
+  cp -avr influxdb/bin/linux/. ${DISTRO}_${arch}
   rm ${selected_fn}
   sudo rm -rf influxdb
 }
@@ -175,27 +180,27 @@ function packager(){
   fi
 }
 function package_deb(){
-  cp -avr ${PWD}/templates/deb/ $DISTRO_$arch/packages
+  cp -avr ${PWD}/templates/deb/ ${DISTRO}_${arch}/packages
 
-  mkdir $DISTRO_$arch/packages/influxd/usr/bin
-  mkdir $DISTRO_$arch/packages/influx/usr/bin
-  cp $DISTRO_$arch/influxd $DISTRO_$arch/packages/influxd/usr/bin/influxd
-  cp $DISTRO_$arch/influx $DISTRO_$arch/packages/influx/usr/bin/influx
-  sudo chmod -R 755 $DISTRO_$arch
+  mkdir ${DISTRO}_${arch}/packages/influxd/usr/bin
+  mkdir ${DISTRO}_${arch}/packages/influx/usr/bin
+  cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
+  cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influx/usr/bin/influx
+  sudo chmod -R 755 ${DISTRO}_${arch}
 
-  INSTALL_SIZE=$(du -s $DISTRO_$arch/packages/influxd/usr/bin | awk '{ print $1 }')
-  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" $DISTRO_$arch/packages/influxd/DEBIAN/control
-  sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" $DISTRO_$arch/packages/influxd/DEBIAN/control
-  fakeroot dpkg-deb -b $DISTRO_$arch/packages/influxd
+  INSTALL_SIZE=$(du -s ${DISTRO}_${arch}/packages/influxd/usr/bin | awk '{ print $1 }')
+  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" ${DISTRO}_${arch}/packages/influxd/DEBIAN/control
+  sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" ${DISTRO}_${arch}/packages/influxd/DEBIAN/control
+  fakeroot dpkg-deb -b ${DISTRO}_${arch}/packages/influxd
 
-  INSTALL_SIZE=$(du -s $DISTRO_$arch/packages/influx/usr/bin/influx | awk '{ print $1 }')
-  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" $DISTRO_$arch/packages/influx/DEBIAN/control
-  sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" $DISTRO_$arch/packages/influx/DEBIAN/control
-  fakeroot dpkg-deb -b $DISTRO_$arch/packages/influx
+  INSTALL_SIZE=$(du -s ${DISTRO}_${arch}/packages/influx/usr/bin/influx | awk '{ print $1 }')
+  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" ${DISTRO}_${arch}/packages/influx/DEBIAN/control
+  sed -i "s/__FILESIZE__/${INSTALL_SIZE}/g" ${DISTRO}_${arch}/packages/influx/DEBIAN/control
+  fakeroot dpkg-deb -b ${DISTRO}_${arch}/packages/influx
 
 
-  mv $DISTRO_$arch/packages/influxd.deb $DISTRO_$arch/packages/influxdb_${BUILD_VERSION_SHORT}_${arch}.deb
-  mv $DISTRO_$arch/packages/influx.deb $DISTRO_$arch/packages/influxdb-client_${BUILD_VERSION_SHORT}_${arch}.deb
+  mv ${DISTRO}_${arch}/packages/influxd.deb ${DISTRO}_${arch}/packages/influxdb_${BUILD_VERSION_SHORT}_${arch}.deb
+  mv ${DISTRO}_${arch}/packages/influx.deb ${DISTRO}_${arch}/packages/influxdb-client_${BUILD_VERSION_SHORT}_${arch}.deb
 }
 function package_rpm(){
   echo "package rpm here"
@@ -206,10 +211,10 @@ function cleanup(){
 }
 detect_distro_phase
 function_install_dep_mapper
-setup_go
-download_source
-setup_rust
-make_project
-copy_files
-packager
-cleanup
+# setup_go
+# download_source
+# setup_rust
+# make_project
+# copy_files
+# packager
+# cleanup
