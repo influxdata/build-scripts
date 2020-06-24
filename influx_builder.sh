@@ -160,6 +160,7 @@ function make_project(){
   make && cd ..
 }
 function copy_files(){
+  sudo rm -rf $DISTRO_$arch
   mkdir $DISTRO_$arch
   cp -avr influxdb/bin/linux/. $DISTRO_$arch
   rm ${selected_fn}
