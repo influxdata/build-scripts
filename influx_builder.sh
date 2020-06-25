@@ -100,12 +100,12 @@ function_install_dep_mapper(){
   if [[ "$DISTRO" == *"Ubuntu"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
-    #install_dep_ubuntu
+    install_dep_ubuntu
   fi
   if [[ "$DISTRO" == *"centos"* ]]; then
     echo $DISTRO
     export T_TYPE="rpm"
-    #install_dep_centos
+    install_dep_centos
   fi
 }
 function install_dep_ubuntu(){
@@ -211,10 +211,10 @@ function cleanup(){
 }
 detect_distro_phase
 function_install_dep_mapper
-# setup_go
-# download_source
-# setup_rust
-# make_project
-# copy_files
-# packager
-# cleanup
+setup_go
+download_source
+setup_rust
+make_project
+copy_files
+packager
+cleanup
