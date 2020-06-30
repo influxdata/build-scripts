@@ -29,6 +29,9 @@ case "$1" in
 
     if [ -d /var/lib/influxdb ]; then
         chown influxdb:influxdb /var/lib/influxdb
+    else
+        mkdir -p /var/lib/influxdb
+        chown influxdb:influxdb /var/lib/influxdb
     fi
 
     if [ -d /var/log/influxdb ]; then
