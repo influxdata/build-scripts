@@ -148,6 +148,8 @@ function install_dep_centos(){
   sudo yum config-manager --set-enabled PowerTools
   sudo yum update -y
   sudo yum install protobuf-devel -y
+  sudo yum install ruby-devel -y
+  sudo gem install fpm
 }
 function download_source(){
   echo "Getting Master Branch Source"
@@ -209,7 +211,63 @@ function package_deb(){
   mv ${DISTRO}_${arch}/packages/influx.deb ${DISTRO}_${arch}/packages/influxdb-client_${BUILD_VERSION_SHORT}_${arch}.deb
 }
 function package_rpm(){
-  echo "package rpm here"
+  cp -avr ${PWD}/templates/rpm/ ${DISTRO}_${arch}/packages
+  mkdir -p "${DISTRO}_${arch}/packages/influxd/usr/bin" \
+         "${DISTRO}_${arch}/packages/influxd/var/log/influxdb" \
+         "${DISTRO}_${arch}/packages/influxd/var/lib/influxdb" \
+         "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts" \
+         "${DISTRO}_${arch}/packages/influxd/usr/share/man/man1" \
+         "${DISTRO}_${arch}/packages/influxd/etc/influxdb" \
+         "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d" \
+         "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/"
+  cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
+  chmod -R 0755 ${DISTRO}_${arch}
+  cp ${DISTRO}_${arch}/packages/scripts/logrotate ${DISTRO}_${arch}/packages/influxd/etc/logrotate.d
+
+  # Copy service scripts.
+  cp ${DISTRO}_${arch}/packages/scripts/init.sh "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/init.sh"
+  chmod 0644 "${DISTRO}_${arch}/packages/usr/lib/influxdb/scripts/init.sh"
+  cp ${DISTRO}_${arch}/packages/scripts/influxdb.service "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
+  chmod 0644 "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
+
+  # Copy logrotate script.
+  cp ${DISTRO}_${arch}/packages/scripts/logrotate "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
+  chmod 0644 "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
+
+  # Copy sample config.
+  cp ${DISTRO}_${arch}/packages/etc/config.sample.toml "${DISTRO}_${arch}/packages/influxd/etc/influxdb/influxdb.conf"
+
+  for typeargs in "-t rpm --depends coreutils --depends shadow-utils"; do
+    FPM_NAME=$(
+      fpm \
+        -s dir \
+        $typeargs \
+        --log error \
+        --vendor InfluxData \
+        --url "https://influxdata.com" \
+        --after-install ${DISTRO}_${arch}/packages/scripts/post-install.sh \
+        --before-install ${DISTRO}_${arch}/packages/scripts/pre-install.sh \
+        --after-remove ${DISTRO}_${arch}/packages/scripts/post-uninstall.sh \
+        --license Proprietary \
+        --maintainer "support@influxdb.com" \
+        --directories /var/log/influxdb \
+        --directories /var/lib/influxdb \
+        --rpm-attr 755,influxdb,influxdb:/var/log/influxdb \
+        --rpm-attr 755,influxdb,influxdb:/var/lib/influxdb \
+        --description 'Distributed time-series database.' \
+        --name "influxdb" \
+        --architecture "${arch}" \
+        --version "${BUILD_VERSION_SHORT}" \
+        --iteration 1 \
+        -C "${DISTRO}_${arch}"/packages/influxd \
+        -p "${DISTRO}_${arch}"/packages/influxd/output \
+         | ruby -e 'puts (eval ARGF.read)[:path]' )
+
+        echo "fpm created $FPM_NAME"
+        NEW_NAME=influxdb_${BUILD_VERSION_SHORT}_${arch}.rpm
+        echo "renaming to ${NEW_NAME}"
+        mv "${FPM_NAME}" "${NEW_NAME}"
+    done
 }
 function cleanup(){
   #Cleanup
