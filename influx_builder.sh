@@ -162,9 +162,15 @@ function make_project(){
   export GO111MODULE=on
   cd influxdb
   find . -name 'node_modules' -type d -prune -print -exec rm -rf '{}' \;
-  make && cd ..
+  make
+  if [ "$?" != "0" ]; then
+      echo "Build failed for ${DISTRO}_${arch}"
+      exit 1
+  fi
+  cd ..
 }
 function copy_files(){
+  echo "Creating packaging directory for ${DISTRO}_${arch}"
   sudo rm -rf ${DISTRO}_${arch}
   mkdir ${DISTRO}_${arch}
   cp -avr influxdb/bin/linux/. ${DISTRO}_${arch}
@@ -182,8 +188,8 @@ function packager(){
 function package_deb(){
   cp -avr ${PWD}/templates/deb/ ${DISTRO}_${arch}/packages
 
-  mkdir ${DISTRO}_${arch}/packages/influxd/usr/bin
-  mkdir ${DISTRO}_${arch}/packages/influx/usr/bin
+  mkdir -p ${DISTRO}_${arch}/packages/influxd/usr/bin
+  mkdir -p ${DISTRO}_${arch}/packages/influx/usr/bin
   cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
   cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influx/usr/bin/influx
   sudo chmod -R 755 ${DISTRO}_${arch}
