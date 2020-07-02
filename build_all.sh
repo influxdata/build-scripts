@@ -1,7 +1,7 @@
 #!/bin/bash
 # Declare an array of string with type
 #("ubuntu" "i386/ubuntu:eoan-20200410" "arm32v7/ubuntu:eoan-20200410" "centos" "arm64v8/ubuntu:eoan-20200608")
-declare -a TargetsArray=("ubuntu" "centos" "i386/ubuntu:eoan-20200410" "arm64v8/ubuntu:eoan-20200608" "arm32v7/ubuntu:eoan-20200410")
+declare -a TargetsArray=("ubuntu" "i386/ubuntu:eoan-20200410" "arm32v7/ubuntu:eoan-20200410" "centos" "arm64v8/ubuntu:eoan-20200608")
 
 echo "Checking Docker installation"
 if ! [ -x "$(command -v docker)" ]; then
@@ -9,7 +9,7 @@ if ! [ -x "$(command -v docker)" ]; then
   exit 1
 else
   echo 'We have docker installed'
-  
+
 fi
 #Iterate through TargetsArray
 for val in ${TargetsArray[@]}; do

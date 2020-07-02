@@ -226,7 +226,7 @@ function package_rpm(){
 
   # Copy service scripts.
   cp ${DISTRO}_${arch}/packages/scripts/init.sh "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/init.sh"
-  chmod 0644 "${DISTRO}_${arch}/packages/usr/lib/influxdb/scripts/init.sh"
+  chmod 0644 "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/init.sh"
   cp ${DISTRO}_${arch}/packages/scripts/influxdb.service "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
   chmod 0644 "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
 
@@ -234,8 +234,6 @@ function package_rpm(){
   cp ${DISTRO}_${arch}/packages/scripts/logrotate "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
   chmod 0644 "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
 
-  # Copy sample config.
-  cp ${DISTRO}_${arch}/packages/etc/config.sample.toml "${DISTRO}_${arch}/packages/influxd/etc/influxdb/influxdb.conf"
 
   for typeargs in "-t rpm --depends coreutils --depends shadow-utils"; do
     FPM_NAME=$(
@@ -266,7 +264,7 @@ function package_rpm(){
         echo "fpm created $FPM_NAME"
         NEW_NAME=influxdb_${BUILD_VERSION_SHORT}_${arch}.rpm
         echo "renaming to ${NEW_NAME}"
-        mv "${FPM_NAME}" "${NEW_NAME}"
+        mv "${FPM_NAME}" "${DISTRO}_${arch}/packages/${NEW_NAME}"
     done
 }
 function cleanup(){
