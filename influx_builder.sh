@@ -213,23 +213,23 @@ function package_rpm(){
          "${DISTRO}_${arch}/packages/influxd/usr/share/man/man1" \
          "${DISTRO}_${arch}/packages/influxd/etc/influxdb" \
          "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d" \
-         "${DISTRO}_${arch}/packages/influxd/scripts/"
+         "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/"
   cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
   chmod -R 0755 ${DISTRO}_${arch}
   cp ${DISTRO}_${arch}/packages/scripts/logrotate ${DISTRO}_${arch}/packages/influxd/etc/logrotate.d
 
   # Copy service scripts.
-  cp ${DISTRO}_${arch}/packages/scripts/init.sh "${DISTRO}_${arch}/packages/influxd/scripts/init.sh"
-  chmod 0644 "${DISTRO}_${arch}/packages/influxd/scripts/init.sh"
-  cp ${DISTRO}_${arch}/packages/scripts/influxdb.service "${DISTRO}_${arch}/packages/influxd/scripts/influxdb.service"
-  chmod 0644 "${DISTRO}_${arch}/packages/influxd/scripts/influxdb.service"
+  cp ${DISTRO}_${arch}/packages/scripts/init.sh "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/init.sh"
+  chmod 0644 "${DISTRO}_${arch}/packages/usr/lib/influxdb/scripts/init.sh"
+  cp ${DISTRO}_${arch}/packages/scripts/influxdb.service "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
+  chmod 0644 "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/influxdb.service"
 
   # Copy logrotate script.
   cp ${DISTRO}_${arch}/packages/scripts/logrotate "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
   chmod 0644 "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d/influxdb"
 
   # Copy sample config.
-  cp ${DISTRO}_${arch}/packages//etc/config.sample.toml "${DISTRO}_${arch}/packages/influxd/etc/influxdb/influxdb.conf"
+  cp ${DISTRO}_${arch}/packages/etc/config.sample.toml "${DISTRO}_${arch}/packages/influxd/etc/influxdb/influxdb.conf"
 
   for typeargs in "-t rpm --depends coreutils --depends shadow-utils"; do
     FPM_NAME=$(
