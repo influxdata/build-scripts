@@ -97,12 +97,13 @@ function setup_go(){
   export PATH=$PATH:/usr/local/go/bin
 }
 function_install_dep_mapper(){
+  echo $DISTRO
   if [[ "$DISTRO" == *"Ubuntu"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
     install_dep_ubuntu
   fi
-  if [[ "$DISTRO" == *"centos"* ]]; then
+  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] ; then
     echo $DISTRO
     export T_TYPE="rpm"
     install_dep_centos
@@ -149,6 +150,7 @@ function install_dep_centos(){
   sudo yum update -y
   sudo yum install protobuf-devel -y
   sudo yum install ruby-devel -y
+  sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
   sudo gem install fpm
 }
 function download_source(){
@@ -216,7 +218,6 @@ function package_rpm(){
          "${DISTRO}_${arch}/packages/influxd/var/log/influxdb" \
          "${DISTRO}_${arch}/packages/influxd/var/lib/influxdb" \
          "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts" \
-         "${DISTRO}_${arch}/packages/influxd/usr/share/man/man1" \
          "${DISTRO}_${arch}/packages/influxd/etc/influxdb" \
          "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d" \
          "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/"
