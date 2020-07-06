@@ -40,6 +40,7 @@ selected_fn=""
 function detect_distro_phase() {
   #Handle docker missing lsb-release
   apt-get update && apt-get install -y lsb-release && apt-get clean all
+  sudo yum install redhat-lsb-core -y
   # Determine OS platform
   UNAME=$(uname | tr "[:upper:]" "[:lower:]")
   # If Linux, try to determine specific distribution
@@ -103,7 +104,7 @@ function_install_dep_mapper(){
     export T_TYPE="deb"
     install_dep_ubuntu
   fi
-  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] ; then
+  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
     echo $DISTRO
     export T_TYPE="rpm"
     install_dep_centos
@@ -136,7 +137,14 @@ function install_dep_centos(){
   yum install sudo -y
   sudo yum install epel-release -y
   sudo yum repolist
-  sudo yum install protobuf clang -y
+  sudo yum install protobuf clang protobuf-devel -y
+  if [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
+    PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
+    curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
+    sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+    sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*'
+    rm -f $PROTOC_ZIP
+  fi
   sudo yum groupinstall 'Development Tools' -y
   sudo dnf install @nodejs -y
   curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
@@ -153,6 +161,7 @@ function install_dep_centos(){
   sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
   sudo gem install fpm
 }
+
 function download_source(){
   echo "Getting Master Branch Source"
   rm -rf influxdb
