@@ -231,6 +231,7 @@ function package_rpm(){
          "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d" \
          "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/"
   cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
+  cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influxd/usr/bin/influx
   chmod -R 0755 ${DISTRO}_${arch}
   cp ${DISTRO}_${arch}/packages/scripts/logrotate ${DISTRO}_${arch}/packages/influxd/etc/logrotate.d
 
