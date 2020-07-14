@@ -110,7 +110,7 @@ function_install_dep_mapper(){
     export T_TYPE="deb"
     install_dep_ubuntu
   fi
-  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
+  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"Fedora"* ]] || [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
     echo $DISTRO
     export T_TYPE="rpm"
     install_dep_centos
@@ -153,15 +153,18 @@ function install_dep_centos(){
   fi
   sudo yum groupinstall 'Development Tools' -y
   sudo dnf install @nodejs -y
+  curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
   curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
   sudo rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
-  sudo dnf install yarn -y
+  sudo yum install yarn -y
+  echo "INSTALLING GIT"
   sudo dnf install git-all -y
   sudo yum install pkgconfig -y
   yum info epel-release -y
   sudo yum install epel-release -y
   sudo yum config-manager --set-enabled PowerTools
   sudo yum update -y
+  sudo dnf install git-all -y
   sudo yum install protobuf-devel -y
   sudo yum install ruby-devel -y
   sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
@@ -237,7 +240,6 @@ function package_rpm(){
          "${DISTRO}_${arch}/packages/influxd/etc/logrotate.d" \
          "${DISTRO}_${arch}/packages/influxd/usr/lib/influxdb/scripts/"
   cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/usr/bin/influxd
-  cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influxd/usr/bin/influx
   chmod -R 0755 ${DISTRO}_${arch}
   cp ${DISTRO}_${arch}/packages/scripts/logrotate ${DISTRO}_${arch}/packages/influxd/etc/logrotate.d
 
@@ -264,7 +266,7 @@ function package_rpm(){
         --before-install ${DISTRO}_${arch}/packages/scripts/pre-install.sh \
         --after-remove ${DISTRO}_${arch}/packages/scripts/post-uninstall.sh \
         --license Proprietary \
-        --maintainer "support@influxdb.com" \
+        --maintainer "distro-maint@influxdata.com" \
         --directories /var/log/influxdb \
         --directories /var/lib/influxdb \
         --rpm-attr 755,influxdb,influxdb:/var/log/influxdb \
@@ -283,6 +285,34 @@ function package_rpm(){
         echo "renaming to ${NEW_NAME}"
         mv "${FPM_NAME}" "${DISTRO}_${arch}/packages/${NEW_NAME}"
     done
+
+    mkdir -p "${DISTRO}_${arch}/packages/influx/usr/bin"
+    cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influx/usr/bin/influx
+    for typeargs in "-t rpm --depends coreutils --depends shadow-utils"; do
+      FPM_NAME=$(
+        fpm \
+          -s dir \
+          $typeargs \
+          --log error \
+          --vendor InfluxData \
+          --url "https://influxdata.com" \
+          --license Proprietary \
+          --maintainer "distro-maint@influxdata.com" \
+          --description 'Distributed time-series database.' \
+          --name "influx" \
+          --architecture "${arch}" \
+          --version "${BUILD_VERSION_SHORT}" \
+          --iteration 1 \
+          --no-rpm-auto-add-directories \
+          -C "${DISTRO}_${arch}"/packages/influx \
+          -p "${DISTRO}_${arch}"/packages/influx/output \
+           | ruby -e 'puts (eval ARGF.read)[:path]' )
+
+          echo "fpm created $FPM_NAME"
+          NEW_NAME=influxdb-client_${BUILD_VERSION_SHORT}_${arch}.rpm
+          echo "renaming to ${NEW_NAME}"
+          mv "${FPM_NAME}" "${DISTRO}_${arch}/packages/${NEW_NAME}"
+      done
 }
 function cleanup(){
   #Cleanup
