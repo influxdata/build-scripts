@@ -89,6 +89,12 @@ function detect_architecture() {
       echo "ARM Architecture"
       selected_fn=${go_fn_armv8}
     fi
+    if [ "$arch" == 'unknown' ]; then
+      #Assuming amd64, need to address certain distros uname -i giving "unknown"
+      arch="amd64"
+      echo "X64 Architecture"
+      selected_fn=${go_fn_x86_64}
+    fi
 }
 function setup_go(){
   echo "Getting GO Dependencies"
@@ -99,7 +105,7 @@ function setup_go(){
 }
 function_install_dep_mapper(){
   echo $DISTRO
-  if [[ "$DISTRO" == *"Ubuntu"* ]]; then
+  if [[ "$DISTRO" == *"Ubuntu"* ]] || [[ "$DISTRO" == *"debian"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
     install_dep_ubuntu
