@@ -143,8 +143,9 @@ function install_dep_centos(){
   yum install sudo -y
   sudo yum install epel-release -y
   sudo yum repolist
-  sudo yum install protobuf clang protobuf-devel -y
+  sudo yum install protobuf clang -y
   if [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
+    sudo yum install protobuf-devel -y
     PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
     sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
@@ -153,21 +154,20 @@ function install_dep_centos(){
   fi
   sudo yum groupinstall 'Development Tools' -y
   sudo dnf install @nodejs -y
-  curl --silent --location https://rpm.nodesource.com/setup_12.x | sudo bash -
   curl --silent --location https://dl.yarnpkg.com/rpm/yarn.repo | sudo tee /etc/yum.repos.d/yarn.repo
   sudo rpm --import https://dl.yarnpkg.com/rpm/pubkey.gpg
-  sudo yum install yarn -y
-  echo "INSTALLING GIT"
+  sudo dnf install yarn -y
   sudo dnf install git-all -y
   sudo yum install pkgconfig -y
   yum info epel-release -y
   sudo yum install epel-release -y
   sudo yum config-manager --set-enabled PowerTools
   sudo yum update -y
-  sudo dnf install git-all -y
   sudo yum install protobuf-devel -y
   sudo yum install ruby-devel -y
-  sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
+  if [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"Fedora"* ]] ; then
+    sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
+  fi
   sudo gem install fpm
 }
 
