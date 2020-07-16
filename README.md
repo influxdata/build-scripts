@@ -1,10 +1,11 @@
-Initial Readme
+Flags Understood on build.sh
 
-objdump -p influxd | grep NEEDED
+-i  Interactive Mode, for each target distribution/arch it drops you directly to a bash prompt. You can run influx builder at that time under mnt/builds/
 
-This will give you a list of requirements
+-d Distributions, each distribution specified is seperated by a space for example ./build.sh -d centos fedora
+
+-a Architecture, this flag is currently not used as we only target AMD64
 
 
-check validity of deb
 
-lintian -i -I --show-overrides influxd_folder.deb
+
