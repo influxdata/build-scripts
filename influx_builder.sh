@@ -89,6 +89,12 @@ function detect_architecture() {
       echo "ARM Architecture"
       selected_fn=${go_fn_armv8}
     fi
+    if [ "$arch" == 'unknown' ]; then
+      #Assuming amd64, need to address certain distros uname -i giving "unknown"
+      arch="amd64"
+      echo "X64 Architecture"
+      selected_fn=${go_fn_x86_64}
+    fi
 }
 function setup_go(){
   echo "Getting GO Dependencies"
@@ -99,12 +105,12 @@ function setup_go(){
 }
 function_install_dep_mapper(){
   echo $DISTRO
-  if [[ "$DISTRO" == *"Ubuntu"* ]]; then
+  if [[ "$DISTRO" == *"Ubuntu"* ]] || [[ "$DISTRO" == *"debian"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
     install_dep_ubuntu
   fi
-  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
+  if [[ "$DISTRO" == *"centos"* ]] || [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"Fedora"* ]] || [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
     echo $DISTRO
     export T_TYPE="rpm"
     install_dep_centos
@@ -137,8 +143,9 @@ function install_dep_centos(){
   yum install sudo -y
   sudo yum install epel-release -y
   sudo yum repolist
-  sudo yum install protobuf clang protobuf-devel -y
+  sudo yum install protobuf clang -y
   if [[ "$DISTRO" == *"RedHatEnterprise"* ]] ; then
+    sudo yum install protobuf-devel -y
     PROTOC_ZIP=protoc-3.7.1-linux-x86_64.zip
     curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v3.7.1/$PROTOC_ZIP
     sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
@@ -158,7 +165,9 @@ function install_dep_centos(){
   sudo yum update -y
   sudo yum install protobuf-devel -y
   sudo yum install ruby-devel -y
-  sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
+  if [[ "$DISTRO" == *"fedora"* ]] || [[ "$DISTRO" == *"Fedora"* ]] ; then
+    sudo dnf install ruby-devel gcc make rpm-build libffi-devel -y
+  fi
   sudo gem install fpm
 }
 
@@ -257,7 +266,7 @@ function package_rpm(){
         --before-install ${DISTRO}_${arch}/packages/scripts/pre-install.sh \
         --after-remove ${DISTRO}_${arch}/packages/scripts/post-uninstall.sh \
         --license Proprietary \
-        --maintainer "support@influxdb.com" \
+        --maintainer "distro-maint@influxdata.com" \
         --directories /var/log/influxdb \
         --directories /var/lib/influxdb \
         --rpm-attr 755,influxdb,influxdb:/var/log/influxdb \
@@ -276,6 +285,34 @@ function package_rpm(){
         echo "renaming to ${NEW_NAME}"
         mv "${FPM_NAME}" "${DISTRO}_${arch}/packages/${NEW_NAME}"
     done
+
+    mkdir -p "${DISTRO}_${arch}/packages/influx/usr/bin"
+    cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influx/usr/bin/influx
+    for typeargs in "-t rpm --depends coreutils --depends shadow-utils"; do
+      FPM_NAME=$(
+        fpm \
+          -s dir \
+          $typeargs \
+          --log error \
+          --vendor InfluxData \
+          --url "https://influxdata.com" \
+          --license Proprietary \
+          --maintainer "distro-maint@influxdata.com" \
+          --description 'Distributed time-series database.' \
+          --name "influx" \
+          --architecture "${arch}" \
+          --version "${BUILD_VERSION_SHORT}" \
+          --iteration 1 \
+          --no-rpm-auto-add-directories \
+          -C "${DISTRO}_${arch}"/packages/influx \
+          -p "${DISTRO}_${arch}"/packages/influx/output \
+           | ruby -e 'puts (eval ARGF.read)[:path]' )
+
+          echo "fpm created $FPM_NAME"
+          NEW_NAME=influxdb-client_${BUILD_VERSION_SHORT}_${arch}.rpm
+          echo "renaming to ${NEW_NAME}"
+          mv "${FPM_NAME}" "${DISTRO}_${arch}/packages/${NEW_NAME}"
+      done
 }
 function cleanup(){
   #Cleanup
