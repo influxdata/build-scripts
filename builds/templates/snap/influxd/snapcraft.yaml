@@ -1,0 +1,29 @@
+name: influxdb
+base: core18
+version: __VERSION__
+summary: InfluxDB
+description: |
+  Scalable datastore for metrics, events, and real-time analytics.
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+  - build-on: i386
+  - build-on: arm64
+
+parts:
+  influxdb:
+    plugin: dump
+    source: bin/
+
+apps:
+
+  influxd:
+    command: influxd --bolt-path $SNAP_COMMON/influxd.bolt --engine-path $SNAP_COMMON/engine
+    daemon: simple
+    plugs:
+      - network
+      - network-bind
+

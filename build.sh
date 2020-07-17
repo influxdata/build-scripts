@@ -1,6 +1,6 @@
 #!/bin/bash
 # Declare an array of string with type
-declare -a DefaultTargets=("ubuntu" "debian" "centos" "fedora")
+declare -a DefaultTargets=("ubuntu" "debian" "centos" "fedora" "snapcore/snapcraft")
 declare -a x86Targets=("i386/ubuntu:eoan-20200410")
 declare -a arm32Targets=("arm32v7/ubuntu:eoan-20200410")
 declare -a arm64Targets=("arm64v8/ubuntu:eoan-20200608")
