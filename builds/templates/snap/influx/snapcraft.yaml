@@ -1,0 +1,37 @@
+name: influx
+base: core18
+version: __VERSION__
+summary: InfluxDB Client
+description: |
+  Commandline client for interacting with InfluxDB
+
+grade: devel
+confinement: strict
+
+architectures:
+  - build-on: amd64
+  - build-on: i386
+  - build-on: arm64
+plugs:
+  config-influxdb:
+    interface: personal-files
+    read:
+    - $HOME/.influxdbv2
+    write:
+    - $HOME/.influxdbv2
+
+parts:
+  influx:
+    plugin: dump
+    source: bin/
+
+
+apps:
+  influx:
+    command: influx
+    plugs:
+      - home
+      - removable-media
+      - network
+      - config-influxdb
+

@@ -105,6 +105,13 @@ function setup_go(){
 }
 function_install_dep_mapper(){
   echo $DISTRO
+  if [[ -f /snap/bin/snapcraft ]]; then
+    echo "Snap"
+    export DISTRO="Snap"
+    export T_TYPE="snap"
+    install_dep_ubuntu
+  fi
+
   if [[ "$DISTRO" == *"Ubuntu"* ]] || [[ "$DISTRO" == *"debian"* ]]; then
     echo $DISTRO
     export T_TYPE="deb"
@@ -203,7 +210,11 @@ function packager(){
   echo $T_TYPE
   if [[ "$T_TYPE" == "deb" ]]; then
     package_deb
-  else
+  fi
+  if [[ "$T_TYPE" == "snap" ]]; then
+    package_snap
+  fi
+  if [[ "$T_TYPE" == "rpm" ]]; then
     package_rpm
   fi
 }
@@ -229,6 +240,30 @@ function package_deb(){
 
   mv ${DISTRO}_${arch}/packages/influxd.deb ${DISTRO}_${arch}/packages/influxdb_${BUILD_VERSION_SHORT}_${arch}.deb
   mv ${DISTRO}_${arch}/packages/influx.deb ${DISTRO}_${arch}/packages/influxdb-client_${BUILD_VERSION_SHORT}_${arch}.deb
+}
+function package_snap(){
+  cp -avr ${PWD}/templates/snap/ ${DISTRO}_${arch}/packages
+
+  mkdir -p ${DISTRO}_${arch}/packages/influxd/bin
+  mkdir -p ${DISTRO}_${arch}/packages/influx/bin
+  cp ${DISTRO}_${arch}/influxd ${DISTRO}_${arch}/packages/influxd/bin/influxd
+  cp ${DISTRO}_${arch}/influx ${DISTRO}_${arch}/packages/influx/bin/influx
+  sudo chmod -R 755 ${DISTRO}_${arch}
+
+  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" ${DISTRO}_${arch}/packages/influxd/snapcraft.yaml
+  cd ${DISTRO}_${arch}/packages/influxd/
+  snapcraft snap --destructive-mode
+  cd ../../..
+
+  sed -i "s/__VERSION__/${BUILD_VERSION:1}/g" ${DISTRO}_${arch}/packages/influx/snapcraft.yaml
+  cd ${DISTRO}_${arch}/packages/influx/
+  snapcraft snap --destructive-mode
+  cd ../../..
+
+
+  mv ${DISTRO}_${arch}/packages/influxd/*.snap ${DISTRO}_${arch}/packages/
+  mv ${DISTRO}_${arch}/packages/influx/*.snap ${DISTRO}_${arch}/packages/
+
 }
 function package_rpm(){
   cp -avr ${PWD}/templates/rpm/ ${DISTRO}_${arch}/packages
