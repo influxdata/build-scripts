@@ -185,7 +185,27 @@ function download_source(){
   cd influxdb && BUILD_VERSION=$(git describe --tags) && BUILD_VERSION_SHORT=$(git describe --tags --abbrev=0) && cd ..
 }
 function setup_rust(){
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs -o rust.sh && chmod +x rust.sh && ./rust.sh -y && export PATH=$PATH:$HOME/.cargo/bin && rm rust.sh
+    local RUST_LATEST_VERSION=1.53.0
+    # For security, we specify a particular rustup version and a SHA256 hash, computed
+    # ourselves and hardcoded here. When updating `RUSTUP_LATEST_VERSION`:
+    #   1. Download the new rustup script from https://github.com/rust-lang/rustup/releases.
+    #   2. Audit the script and changes to it. You might want to grep for strange URLs...
+    #   3. Update `OUR_RUSTUP_SHA` with the result of running `sha256sum rustup-init.sh`.
+    local RUSTUP_LATEST_VERSION=1.24.3
+    local OUR_RUSTUP_SHA="a3cb081f88a6789d104518b30d4aa410009cd08c3822a1226991d6cf0442a0f8"
+
+    # Download rustup script
+    curl --proto '=https' --tlsv1.2 -sSf -O \
+         https://raw.githubusercontent.com/rust-lang/rustup/${RUSTUP_LATEST_VERSION}/rustup-init.sh
+
+    # Verify checksum of rustup-init.sh
+    echo "${OUR_RUSTUP_SHA} rustup-init.sh" | sha256sum --check --
+
+    # Run rustup.
+    sh rustup-init.sh --default-toolchain "$RUST_LATEST_VERSION" -y
+    export PATH="${HOME}/.cargo/bin:${PATH}"
+
+    rm rustup-init.sh
 }
 function make_project(){
   export GO111MODULE=on
